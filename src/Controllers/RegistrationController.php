@@ -27,12 +27,24 @@ class RegistrationController
             ]);
         }
 
-        $appointmentId = $payload['appointment_id'] ?? null;
-        $patientName = trim($payload['patient_name'] ?? '');
-        $email = trim($payload['email'] ?? '');
-        $quantity = (int) ($payload['quantity'] ?? 0);
+        $appointmentIdRaw = $payload['appointment_id'] ?? null;
+        $patientNameRaw = $payload['patient_name'] ?? '';
+        $emailRaw = $payload['email'] ?? '';
+        $quantityRaw = $payload['quantity'] ?? null;
 
-        if (!$appointmentId || $patientName === '' || $email === '' || $quantity <= 0) {
+        if (!is_scalar($appointmentIdRaw) || !is_string($patientNameRaw) || !is_string($emailRaw) || !is_scalar($quantityRaw)) {
+            Response::json(422, [
+                'error' => 'Unprocessable Content',
+                'message' => 'appointment_id, patient_name, email, quantity là bắt buộc và phải hợp lệ'
+            ]);
+        }
+
+        $appointmentId = filter_var($appointmentIdRaw, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        $quantity = filter_var($quantityRaw, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        $patientName = trim($patientNameRaw);
+        $email = trim($emailRaw);
+
+        if ($appointmentId === false || $quantity === false || $patientName === '' || $email === '') {
             Response::json(422, [
                 'error' => 'Unprocessable Content',
                 'message' => 'appointment_id, patient_name, email, quantity là bắt buộc và phải hợp lệ'
